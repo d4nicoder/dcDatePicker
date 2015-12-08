@@ -1,19 +1,17 @@
 {
-  "name": "datepicker",
+  "name": "dcDatepicker",
   "authors": [
     "Daniel Cañada García <danitetus@gmail.com>"
   ],
-  "description": "",
+  "description": "A simple angular directive to show calendar on an input element.",
   "main": "",
   "moduleType": [],
   "license": "MIT",
-  "homepage": "",
+  "homepage": "https://github.com/danitetus/dcDatePicker",
   "ignore": [
     "**/.*",
     "node_modules",
-    "bower_components",
-    "test",
-    "tests"
+    "bower_components"
   ],
   "dependencies": {
     "angular": "~1.4.8",

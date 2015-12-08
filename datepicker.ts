@@ -1,6 +1,6 @@
 ///<reference path="typings/angularjs/angular.d.ts" />
 
-angular.module("dcgDatePicker", []);
+angular.module("dcDatePicker", []);
 
 module DatePicker {
 
@@ -70,7 +70,7 @@ module DatePicker {
 				fecha.setSeconds(0);
 				fecha.setMilliseconds(0);
 
-				if (scope.dateType === "mes") {
+				if (scope.dateType === "month") {
 					fecha.setDate(1);
 				}
 				ngModel.$setViewValue(fecha);
@@ -93,7 +93,7 @@ module DatePicker {
 								<span class="glyphicon glyphicon-arrow-right"></span>
 							</div>
 						</div>
-						<div class="row bg-warning" ng-show="dateType === 'dia'" style="margin-left:-25px;margin-right:-25px;">
+						<div class="row bg-warning" ng-show="dateType === 'day'" style="margin-left:-25px;margin-right:-25px;">
 							<!-- Ahora la fila que contendrá el paso del més (si no es vista de meses) -->
 							<div class="col-xs-4" style="padding:10px;text-align:left;cursor:pointer" ng-click="cambiaMes(-1)">
 								<span class="glyphicon glyphicon-arrow-left"></span>
@@ -105,14 +105,14 @@ module DatePicker {
 								<span class="glyphicon glyphicon-arrow-right"></span>
 							</div>
 						</div>
-						<table class="table" ng-if="dateType==='mes'">
+						<table class="table" ng-if="dateType==='month'">
 							<!-- Ahora las filas de los meses (en caso de que sea vista tipo mes) -->
 							<tr ng-repeat="mes in meses">
 								<td ng-repeat="dia in mes" ng-class="claseDia(dia)" ng-click="asignar(dia)" style="cursor:pointer;text-align:center;" ng-mouseover="mouseover($event)" ng-mouseleave="mouseout($event)">{{dia | date:'MMM'}}</td>
 							</tr>
 						</div>
 						<!-- Ahora en caso de que sea fecha de tipo día lo mostramos como una tabla -->
-						<table class="table" ng-if="dateType === 'dia'">
+						<table class="table" ng-if="dateType === 'day'">
 							<tr>
 								<th ng-repeat="dia in diasCabecera track by $index" style="text-align:center;">{{dia | date : 'EEE'}}</th>
 							</tr>
@@ -363,5 +363,5 @@ module DatePicker {
 		}
 	}
 
-	angular.module("dcgDatePicker").directive("dcgDatePicker", Directive.factory());
+	angular.module("dcDatePicker").directive("dcDatePicker", Directive.factory());
 }
