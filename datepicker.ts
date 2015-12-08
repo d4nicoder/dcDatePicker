@@ -17,6 +17,7 @@ module DatePicker {
 		cambiaMes: (tipo: number) => void;
 		cambiaAno: (ano: number) => void;
 		asignar: (dia:Date) => void;
+		borrar: () => void;
 		mouseover: (ev: Event) => void;
 		mouseout: (ev: Event) => void;
 		claseDia: (dia: Date) => string;
@@ -45,6 +46,10 @@ module DatePicker {
 
 
 			var getCadena = (dia:Date) : string => {
+				if (dia === null) {
+					return "";
+				}
+
 				var mes = dia.getMonth() + 1;
 				var cadena = dia.getDate() + "-" + mes + "-" + dia.getFullYear();
 				return cadena;
@@ -64,25 +69,41 @@ module DatePicker {
 				fecha.setMinutes(0);
 				fecha.setSeconds(0);
 				fecha.setMilliseconds(0);
+
+				if (scope.dateType === "mes") {
+					fecha.setDate(1);
+				}
 				ngModel.$setViewValue(fecha);
 
 				aplicar();
 			}
 
 			var template = `
-				<div style="position:absolute;display:block;left:{{left}}px;top:{{top}}px;min-width:{{width}}px;padding:10px;box-shadow:0 3px 3px rgba(0,0,0,0.5);">
+				<div style="position:absolute;display:block;background-color:white;left:{{left}}px;top:{{top}}px;min-width:{{width}}px;padding:10px;box-shadow:0 3px 3px rgba(0,0,0,0.5);">
 					<div class="container-fluid">
 						<div class="row bg-primary" style="margin-left:-25px;margin-right:-25px;margin-top:-10px;">
 							<!--Mostramos la fila que contiene los años-->
-							<div class="col-xs-4" style="padding:10px;text-align:left;cursor:pointer;" ng-click="cambiaAno(-1)"><span class="glyphicon glyphicon-arrow-left"></span></div>
-							<div class="col-xs-4" style="padding:10px;text-align:center;">{{ngModel | date : 'yyyy'}}</div>
-							<div class="col-xs-4" style="padding:10px;text-align:right;cursor:pointer;" ng-click="cambiaAno(1)"><span class="glyphicon glyphicon-arrow-right"></span></div>
+							<div class="col-xs-4" style="padding:10px;text-align:left;cursor:pointer;" ng-click="cambiaAno(-1)">
+								<span class="glyphicon glyphicon-arrow-left"></span>
+							</div>
+							<div class="col-xs-4" style="padding:10px;text-align:center;">
+								{{ngModel | date : 'yyyy'}}
+							</div>
+							<div class="col-xs-4" style="padding:10px;text-align:right;cursor:pointer;" ng-click="cambiaAno(1)">
+								<span class="glyphicon glyphicon-arrow-right"></span>
+							</div>
 						</div>
-						<div class="row" ng-show="dateType === 'dia'">
+						<div class="row bg-warning" ng-show="dateType === 'dia'" style="margin-left:-25px;margin-right:-25px;">
 							<!-- Ahora la fila que contendrá el paso del més (si no es vista de meses) -->
-							<div class="col-xs-4" style="text-align:left;cursor:pointer" ng-click="cambiaMes(-1)"><span class="glyphicon glyphicon-arrow-left"></span></div>
-							<div class="col-xs-4" style="text-align:center;">{{ngModel | date:'MMM'}}</div>
-							<div class="col-xs-4" style="text-align:right;cursor:pointer" ng-click="cambiaMes(1)"><span class="glyphicon glyphicon-arrow-right"></span></div>
+							<div class="col-xs-4" style="padding:10px;text-align:left;cursor:pointer" ng-click="cambiaMes(-1)">
+								<span class="glyphicon glyphicon-arrow-left"></span>
+							</div>
+							<div class="col-xs-4" style="padding:10px;text-align:center;">
+								{{ngModel | date:'MMMM'}}
+							</div>
+							<div class="col-xs-4" style="padding:10px;text-align:right;cursor:pointer" ng-click="cambiaMes(1)">
+								<span class="glyphicon glyphicon-arrow-right"></span>
+							</div>
 						</div>
 						<table class="table" ng-if="dateType==='mes'">
 							<!-- Ahora las filas de los meses (en caso de que sea vista tipo mes) -->
@@ -99,11 +120,14 @@ module DatePicker {
 								<td ng-repeat="dia in semana track by $index" ng-class="claseDia(dia)" ng-click="asignar(dia)" style="cursor:pointer;text-align:center;" ng-mouseover="mouseover($event)" ng-mouseleave="mouseout($event)">{{dia | date:'d'}}</td>
 							</tr>
 						</table>
+						<div class="btn-group">
+							<button class="btn-default btn btn-sm" ng-click="borrar()">Borrar</button>
+						</div>
 					</div>
 				</div>
 			`;
 
-			console.log(ngModel);
+			elem.css("cursor", "pointer");
 
 			scope.ngModel = ngModel.$modelValue;
 
@@ -280,17 +304,30 @@ module DatePicker {
 				scope.activo = false;
 			};
 
+			var getDimensiones = () => {
+
+				var de = document.documentElement;
+				var box = elem[0].getBoundingClientRect();
+				var top = box.top + window.pageYOffset - de.clientTop;
+				var left = box.left + window.pageXOffset - de.clientLeft;
+				return { top: top, left: left };
+			}
+
 			var render = () => {
 				// Obtenemos el alto y ancho del elemento
-				scope.top = elem[0].offsetHeight - 1;
-				scope.width = elem[0].offsetWidth;
-				scope.left = elem[0].offsetLeft;
+				var dim = getDimensiones();
 
-				console.log(scope.top);
-				console.log(scope.left);
-				console.log(scope.width);
+				//scope.top = elem[0].offsetHeight - 1;
+				//scope.left = elem[0].offsetLeft;
+				
+				scope.top = dim.top + elem[0].offsetHeight;
+				scope.left = dim.left;
+
+				scope.width = elem[0].offsetWidth;
+
 				capa = this.$compile(template)(scope);
-				elem.parent().append(capa);
+				//elem.parent().append(capa);
+				angular.element(this.$document[0].body).append(capa);
 
 				scope.activo = true;
 			}
@@ -300,6 +337,12 @@ module DatePicker {
 				aplicar();
 				esconder();
 			}
+
+			scope.borrar = () => {
+				ngModel.$setViewValue(null);
+				aplicar();
+				esconder();
+			}			
 
 			
 
@@ -311,11 +354,11 @@ module DatePicker {
 			});
 		}
 
-		constructor (private $compile:ng.ICompileService) {}
+		constructor (private $compile:ng.ICompileService, private $document:ng.IDocumentService) {}
 
 		static factory () : ng.IDirectiveFactory {
-			const directiva = ($compile:ng.ICompileService) => new Directive($compile);
-			directiva.$inject = ["$compile"];
+			const directiva = ($compile:ng.ICompileService, $document:ng.IDocumentService) => new Directive($compile, $document);
+			directiva.$inject = ["$compile", "$document"];
 			return directiva;
 		}
 	}
