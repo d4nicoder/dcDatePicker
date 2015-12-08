@@ -86,10 +86,7 @@ module DatePicker {
 
 			var aplicar = () => {
 				var dia = ngModel.$modelValue;
-				
-				//ngModel.$setViewValue(cadena);
 				elem.val(getCadena(dia));
-				//ngModel.$render();
 			}
 
 			var template = `
@@ -248,15 +245,15 @@ module DatePicker {
 				switch (tipo) {
 					case -1:
 						// Mes anterior:
-						mes = (ngModel.$modelValue.getMonth() === 0) ? 11 : ngModel.$modelValue.getMonth() - 1;
+						mes = (scope.puntero.getMonth() === 0) ? 11 : scope.puntero.getMonth() - 1;
 						dia = 1;
-						ano = (mes === 11) ? ngModel.$modelValue.getFullYear() - 1 : ngModel.$modelValue.getFullYear();
+						ano = (mes === 11) ? scope.puntero.getFullYear() - 1 : scope.puntero.getFullYear();
 						break;
 					case 1:
 						// Mes siguiente:
-						mes = (ngModel.$modelValue.getMonth() === 11) ? 0 : ngModel.$modelValue.getMonth() + 1;
+						mes = (scope.puntero.getMonth() === 11) ? 0 : scope.puntero.getMonth() + 1;
 						dia = 1;
-						ano = (mes === 0) ? ngModel.$modelValue.getFullYear() + 1 : ngModel.$modelValue.getFullYear();
+						ano = (mes === 0) ? scope.puntero.getFullYear() + 1 : scope.puntero.getFullYear();
 						break;
 				}
 

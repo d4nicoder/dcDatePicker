@@ -114,14 +114,14 @@ var DatePicker;
                     var ano = null;
                     switch (tipo) {
                         case -1:
-                            mes = (ngModel.$modelValue.getMonth() === 0) ? 11 : ngModel.$modelValue.getMonth() - 1;
+                            mes = (scope.puntero.getMonth() === 0) ? 11 : scope.puntero.getMonth() - 1;
                             dia = 1;
-                            ano = (mes === 11) ? ngModel.$modelValue.getFullYear() - 1 : ngModel.$modelValue.getFullYear();
+                            ano = (mes === 11) ? scope.puntero.getFullYear() - 1 : scope.puntero.getFullYear();
                             break;
                         case 1:
-                            mes = (ngModel.$modelValue.getMonth() === 11) ? 0 : ngModel.$modelValue.getMonth() + 1;
+                            mes = (scope.puntero.getMonth() === 11) ? 0 : scope.puntero.getMonth() + 1;
                             dia = 1;
-                            ano = (mes === 0) ? ngModel.$modelValue.getFullYear() + 1 : ngModel.$modelValue.getFullYear();
+                            ano = (mes === 0) ? scope.puntero.getFullYear() + 1 : scope.puntero.getFullYear();
                             break;
                     }
                     scope.puntero.setDate(dia);
