@@ -2,31 +2,42 @@ angular.module("dcDatePicker", []);
 var DatePicker;
 (function (DatePicker) {
     var Directive = (function () {
-        function Directive($compile, $document) {
+        function Directive($compile, $document, $filter) {
             var _this = this;
             this.$compile = $compile;
             this.$document = $document;
+            this.$filter = $filter;
             this.restrict = "A";
             this.scope = {
                 dateType: "=",
                 min: "=?",
-                max: "=?"
+                max: "=?",
+                format: "@?"
             };
             this.require = "ngModel";
             this.link = function (scope, elem, attrs, ngModel) {
+                var initDate = function (fecha) {
+                    fecha = (fecha === undefined) ? new Date() : fecha;
+                    fecha.setMilliseconds(0);
+                    fecha.setHours(0);
+                    fecha.setMinutes(0);
+                    fecha.setSeconds(0);
+                    return fecha;
+                };
                 var getCadena = function (dia) {
                     if (dia === null) {
                         return "";
                     }
-                    var mes = dia.getMonth() + 1;
-                    var cadena = dia.getDate() + "-" + mes + "-" + dia.getFullYear();
-                    return cadena;
+                    if (!scope.format) {
+                        scope.format = "d/MM/yyyy";
+                    }
+                    return _this.$filter("date")(dia, scope.format);
                 };
                 var aplicar = function () {
                     var dia = ngModel.$modelValue;
                     elem.val(getCadena(dia));
                 };
-                var template = "\n\t\t\t\t<div style=\"position:absolute;display:block;background-color:white;left:{{left}}px;top:{{top}}px;min-width:{{width}}px;padding:10px;box-shadow:0 3px 3px rgba(0,0,0,0.5);z-index:1000;\">\n\t\t\t\t\t<div class=\"container-fluid\">\n\t\t\t\t\t\t<div class=\"row bg-primary\" style=\"margin-left:-25px;margin-right:-25px;margin-top:-10px;\">\n\t\t\t\t\t\t\t<!--Mostramos la fila que contiene los a\u00F1os-->\n\t\t\t\t\t\t\t<div class=\"col-xs-4\" style=\"padding:10px;text-align:left;cursor:pointer;\" ng-click=\"cambiaAno(-1)\">\n\t\t\t\t\t\t\t\t<span class=\"glyphicon glyphicon-arrow-left\"></span>\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t<div class=\"col-xs-4\" style=\"padding:10px;text-align:center;\">\n\t\t\t\t\t\t\t\t{{ngModel | date : 'yyyy'}}\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t<div class=\"col-xs-4\" style=\"padding:10px;text-align:right;cursor:pointer;\" ng-click=\"cambiaAno(1)\">\n\t\t\t\t\t\t\t\t<span class=\"glyphicon glyphicon-arrow-right\"></span>\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t\t<div class=\"row bg-warning\" ng-show=\"dateType === 'day'\" style=\"margin-left:-25px;margin-right:-25px;\">\n\t\t\t\t\t\t\t<!-- Ahora la fila que contendr\u00E1 el paso del m\u00E9s (si no es vista de meses) -->\n\t\t\t\t\t\t\t<div class=\"col-xs-4\" style=\"padding:10px;text-align:left;cursor:pointer\" ng-click=\"cambiaMes(-1)\">\n\t\t\t\t\t\t\t\t<span class=\"glyphicon glyphicon-arrow-left\"></span>\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t<div class=\"col-xs-4\" style=\"padding:10px;text-align:center;\">\n\t\t\t\t\t\t\t\t{{ngModel | date:'MMMM'}}\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t<div class=\"col-xs-4\" style=\"padding:10px;text-align:right;cursor:pointer\" ng-click=\"cambiaMes(1)\">\n\t\t\t\t\t\t\t\t<span class=\"glyphicon glyphicon-arrow-right\"></span>\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t\t<table class=\"table\" ng-if=\"dateType==='month'\">\n\t\t\t\t\t\t\t<!-- Ahora las filas de los meses (en caso de que sea vista tipo mes) -->\n\t\t\t\t\t\t\t<tr ng-repeat=\"mes in meses\">\n\t\t\t\t\t\t\t\t<td ng-repeat=\"dia in mes\" ng-style=\"estiloDia(dia)\" ng-class=\"claseDia(dia)\" ng-click=\"asignar(dia)\" style=\"cursor:pointer;text-align:center;\" ng-mouseover=\"mouseover($event, dia)\" ng-mouseleave=\"mouseout($event)\">{{dia | date:'MMM'}}</td>\n\t\t\t\t\t\t\t</tr>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t\t<!-- Ahora en caso de que sea fecha de tipo d\u00EDa lo mostramos como una tabla -->\n\t\t\t\t\t\t<table class=\"table\" ng-if=\"dateType === 'day'\">\n\t\t\t\t\t\t\t<tr>\n\t\t\t\t\t\t\t\t<th ng-repeat=\"dia in diasCabecera track by $index\" style=\"text-align:center;\">{{dia | date : 'EEE'}}</th>\n\t\t\t\t\t\t\t</tr>\n\t\t\t\t\t\t\t<tr ng-repeat=\"semana in semanas track by $index\">\n\t\t\t\t\t\t\t\t<td ng-repeat=\"dia in semana track by $index\" ng-style=\"estiloDia(dia)\" ng-class=\"claseDia(dia)\" ng-click=\"asignar(dia)\" style=\"cursor:pointer;text-align:center;\" ng-mouseover=\"mouseover($event, dia)\" ng-mouseleave=\"mouseout($event)\">{{dia | date:'d'}}</td>\n\t\t\t\t\t\t\t</tr>\n\t\t\t\t\t\t</table>\n\t\t\t\t\t\t<div class=\"btn-group\">\n\t\t\t\t\t\t\t<button class=\"btn-default btn btn-sm\" ng-click=\"borrar()\">Borrar</button>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t";
+                var template = "\n\t\t\t\t<div style=\"position:absolute;display:block;background-color:white;left:{{left}}px;top:{{top}}px;min-width:{{width}}px;padding:10px;box-shadow:0 3px 3px rgba(0,0,0,0.5);z-index:1000;\">\n\t\t\t\t\t<div class=\"container-fluid\">\n\t\t\t\t\t\t<div class=\"row bg-primary\" style=\"margin-left:-25px;margin-right:-25px;margin-top:-10px;\">\n\t\t\t\t\t\t\t<!--Mostramos la fila que contiene los a\u00F1os-->\n\t\t\t\t\t\t\t<div class=\"col-xs-4\" style=\"padding:10px;text-align:left;cursor:pointer;\" ng-click=\"cambiaAno(-1)\">\n\t\t\t\t\t\t\t\t<span class=\"glyphicon glyphicon-arrow-left\"></span>\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t<div class=\"col-xs-4\" style=\"padding:10px;text-align:center;\">\n\t\t\t\t\t\t\t\t{{puntero | date : 'yyyy'}}\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t<div class=\"col-xs-4\" style=\"padding:10px;text-align:right;cursor:pointer;\" ng-click=\"cambiaAno(1)\">\n\t\t\t\t\t\t\t\t<span class=\"glyphicon glyphicon-arrow-right\"></span>\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t\t<div class=\"row bg-warning\" ng-show=\"dateType === 'day'\" style=\"margin-left:-25px;margin-right:-25px;\">\n\t\t\t\t\t\t\t<!-- Ahora la fila que contendr\u00E1 el paso del m\u00E9s (si no es vista de meses) -->\n\t\t\t\t\t\t\t<div class=\"col-xs-4\" style=\"padding:10px;text-align:left;cursor:pointer\" ng-click=\"cambiaMes(-1)\">\n\t\t\t\t\t\t\t\t<span class=\"glyphicon glyphicon-arrow-left\"></span>\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t<div class=\"col-xs-4\" style=\"padding:10px;text-align:center;\">\n\t\t\t\t\t\t\t\t{{puntero | date:'MMMM'}}\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t<div class=\"col-xs-4\" style=\"padding:10px;text-align:right;cursor:pointer\" ng-click=\"cambiaMes(1)\">\n\t\t\t\t\t\t\t\t<span class=\"glyphicon glyphicon-arrow-right\"></span>\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t\t<table class=\"table\" ng-if=\"dateType==='month'\">\n\t\t\t\t\t\t\t<!-- Ahora las filas de los meses (en caso de que sea vista tipo mes) -->\n\t\t\t\t\t\t\t<tr ng-repeat=\"mes in meses\">\n\t\t\t\t\t\t\t\t<td ng-repeat=\"dia in mes\" ng-style=\"estiloDia(dia)\" ng-class=\"claseDia(dia)\" ng-click=\"asignar(dia)\" style=\"cursor:pointer;text-align:center;\" ng-mouseover=\"mouseover($event, dia)\" ng-mouseleave=\"mouseout($event)\">{{dia | date:'MMM'}}</td>\n\t\t\t\t\t\t\t</tr>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t\t<!-- Ahora en caso de que sea fecha de tipo d\u00EDa lo mostramos como una tabla -->\n\t\t\t\t\t\t<table class=\"table\" ng-if=\"dateType === 'day'\">\n\t\t\t\t\t\t\t<tr>\n\t\t\t\t\t\t\t\t<th ng-repeat=\"dia in diasCabecera track by $index\" style=\"text-align:center;\">{{dia | date : 'EEE'}}</th>\n\t\t\t\t\t\t\t</tr>\n\t\t\t\t\t\t\t<tr ng-repeat=\"semana in semanas track by $index\">\n\t\t\t\t\t\t\t\t<td ng-repeat=\"dia in semana track by $index\" ng-style=\"estiloDia(dia)\" ng-class=\"claseDia(dia)\" ng-click=\"asignar(dia)\" style=\"cursor:pointer;text-align:center;\" ng-mouseover=\"mouseover($event, dia)\" ng-mouseleave=\"mouseout($event)\">{{dia | date:'d'}}</td>\n\t\t\t\t\t\t\t</tr>\n\t\t\t\t\t\t</table>\n\t\t\t\t\t\t<div class=\"btn-group\">\n\t\t\t\t\t\t\t<button class=\"btn-default btn btn-sm\" ng-click=\"borrar()\">Borrar</button>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t";
                 elem.css("cursor", "pointer");
                 scope.diasCabecera = [];
                 var dia = new Date();
@@ -44,17 +55,14 @@ var DatePicker;
                 }
                 var getMeses = function () {
                     scope.meses = [];
-                    var ano = ngModel.$modelValue.getFullYear();
+                    var ano = scope.puntero.getFullYear();
                     var m = 0;
                     for (var i = 0; i < 12; i++) {
                         var nuevoMes = new Date();
                         nuevoMes.setFullYear(ano);
                         nuevoMes.setMonth(i);
                         nuevoMes.setDate(1);
-                        nuevoMes.setHours(0);
-                        nuevoMes.setMinutes(0);
-                        nuevoMes.setSeconds(0);
-                        nuevoMes.setMilliseconds(0);
+                        nuevoMes = initDate(nuevoMes);
                         if (i % 3 === 0 && i !== 0) {
                             m++;
                         }
@@ -86,15 +94,12 @@ var DatePicker;
                 };
                 var getDias = function () {
                     scope.dias = [];
-                    var mes = ngModel.$modelValue.getMonth();
+                    var mes = scope.puntero.getMonth();
                     var dia = new Date();
                     dia.setMonth(mes);
                     dia.setDate(1);
-                    dia.setFullYear(ngModel.$modelValue.getFullYear());
-                    dia.setHours(0);
-                    dia.setMinutes(0);
-                    dia.setSeconds(0);
-                    dia.setMilliseconds(0);
+                    dia.setFullYear(scope.puntero.getFullYear());
+                    dia = initDate(dia);
                     scope.dias.push(dia);
                     var nuevoDia = new Date(dia.getTime() + 86400000);
                     while (mes === nuevoDia.getMonth()) {
@@ -112,25 +117,22 @@ var DatePicker;
                             mes = (ngModel.$modelValue.getMonth() === 0) ? 11 : ngModel.$modelValue.getMonth() - 1;
                             dia = 1;
                             ano = (mes === 11) ? ngModel.$modelValue.getFullYear() - 1 : ngModel.$modelValue.getFullYear();
-                            scope.ngModel = new Date();
-                            ngModel.$modelValue.setMonth(mes);
-                            ngModel.$modelValue.setDate(1);
-                            ngModel.$modelValue.setFullYear(ano);
                             break;
                         case 1:
                             mes = (ngModel.$modelValue.getMonth() === 11) ? 0 : ngModel.$modelValue.getMonth() + 1;
                             dia = 1;
                             ano = (mes === 0) ? ngModel.$modelValue.getFullYear() + 1 : ngModel.$modelValue.getFullYear();
-                            scope.ngModel = new Date();
-                            ngModel.$modelValue.setMonth(mes);
-                            ngModel.$modelValue.setDate(1);
-                            ngModel.$modelValue.setFullYear(ano);
                             break;
                     }
+                    scope.puntero.setDate(dia);
+                    scope.puntero.setMonth(mes);
+                    scope.puntero.setFullYear(ano);
+                    getMeses();
+                    getDias();
                 };
                 scope.cambiaAno = function (ano) {
-                    ano = (ano === 1) ? ngModel.$modelValue.getFullYear() + 1 : ngModel.$modelValue.getFullYear() - 1;
-                    ngModel.$modelValue.setFullYear(ano);
+                    ano = (ano === 1) ? scope.puntero.getFullYear() + 1 : scope.puntero.getFullYear() - 1;
+                    scope.puntero.setFullYear(ano);
                     getMeses();
                     getDias();
                 };
@@ -172,9 +174,9 @@ var DatePicker;
                     angular.element(ev.target).removeClass("bg-primary");
                 };
                 var esconder = function () {
+                    scope.activo = false;
                     angular.element(capa).remove();
                     capa = null;
-                    scope.activo = false;
                 };
                 var getDimensiones = function () {
                     var de = document.documentElement;
@@ -184,6 +186,11 @@ var DatePicker;
                     return { top: top, left: left };
                 };
                 var render = function () {
+                    if (scope.puntero === null) {
+                        scope.puntero = initDate();
+                        getMeses();
+                        getDias();
+                    }
                     var dim = getDimensiones();
                     scope.top = dim.top + elem[0].offsetHeight;
                     scope.left = dim.left;
@@ -196,12 +203,14 @@ var DatePicker;
                     if ((scope.min !== null && dia < scope.min) || (scope.max !== null && dia > scope.max)) {
                         return;
                     }
-                    ngModel.$setViewValue(dia);
+                    scope.puntero = dia;
+                    ngModel.$setViewValue(new Date(dia.getTime()));
                     aplicar();
                     esconder();
                 };
                 scope.borrar = function () {
                     ngModel.$setViewValue(null);
+                    scope.puntero = null;
                     aplicar();
                     esconder();
                 };
@@ -211,10 +220,9 @@ var DatePicker;
                 scope.$watch("max", function (nueva) {
                     scope.max = (nueva === undefined || nueva === null) ? null : nueva;
                 });
-                console.log("El valor inicial es: " + ngModel.$modelValue);
                 if (isNaN(ngModel.$modelValue)) {
-                    ngModel.$setViewValue(new Date());
-                    console.log("Establecemos la fecha");
+                    ngModel.$setViewValue(null);
+                    scope.puntero = initDate();
                 }
                 getMeses();
                 getDias();
@@ -222,8 +230,8 @@ var DatePicker;
             };
         }
         Directive.factory = function () {
-            var directiva = function ($compile, $document) { return new Directive($compile, $document); };
-            directiva.$inject = ["$compile", "$document"];
+            var directiva = function ($compile, $document, $filter) { return new Directive($compile, $document, $filter); };
+            directiva.$inject = ["$compile", "$document", "$filter"];
             return directiva;
         };
         return Directive;

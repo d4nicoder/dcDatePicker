@@ -4,54 +4,84 @@ angular.module("dcDatePicker", []);
 
 module DatePicker {
 
+	/**
+	 * Definimos la interface del scope que tendremos en la directiva
+	 */
 	interface IScopeDirectiva extends ng.IScope {
-		ngModel: Date;
-		dateType: string;
-		min: Date;
-		max: Date;
-		range: boolean;
-		top: number;
-		left: number;
-		width: number;
-		activo: boolean;
-		cambiaMes: (tipo: number) => void;
-		cambiaAno: (ano: number) => void;
-		asignar: (dia:Date) => void;
-		borrar: () => void;
-		mouseover: (ev: Event, dia:Date) => void;
-		mouseout: (ev: Event) => void;
-		claseDia: (dia: Date) => string;
-		estiloDia: (dia: Date) => Object;
-		meses: Array<Array<Date>>;
-		dias: Array<Date>;
-		diasCabecera: Array<Date>;
-		semanas: Array<Array<Date>>;
-		fechaIni: Date;
-		fechaFin: Date;
+		puntero: Date; 			// Es un puntero que mantiene la fecha interna que tenemos seleccionada (temporalmente);
+		dateType: string;		// El tipo de calendario que se mostrará (day|month)
+		min: Date;				// La fecha mínima que se puede seleccionar
+		max: Date; 				// La fecha máxima que se puede seleccionar
+		format: string;			// Formato con el que se renderizará la fecha (compatible con el filtro date de angular)
+		range: boolean;			// Desactivado
+		top: number;			// La distancia hasta el marco superior de la ventana (teniendo en cuenta el scroll)
+		left: number;			// Igual que el top, pero desde el borde izquierdo de la ventana
+		width: number;			// El ancho del calendario (de momento no lo usamos)
+		activo: boolean;		// Define si el calendario está activo o no (en un futuro se usará la propiedad disabled)
+		cambiaMes: (tipo: number) => void; // Función para cambiar el més del calendario
+		cambiaAno: (ano: number) => void; 	// Función para cambiar el año del calendario
+		asignar: (dia:Date) => void;		// Método para asignar la fecha que hemos seleccionado
+		borrar: () => void; 				// Método para borrar la fecha del calendario
+		mouseover: (ev: Event, dia:Date) => void; 	// Método para cambiar el estilo del día/mes cuando pasa el ratón por encima
+		mouseout: (ev: Event) => void; 				// Método para dejar el estilo como estaba cuando el ratón se marcha
+		claseDia: (dia: Date) => string;			// Método que define la clase del día, si es el día actualmente seleccionado es en fondo verde
+		estiloDia: (dia: Date) => Object;			// Método que define el estilo del día, se emplea para dar estilo desactivado a los días no permitidos
+		meses: Array<Array<Date>>;					// Array con los meses del año en curso
+		dias: Array<Date>;							// Array con los días del mes en curso
+		diasCabecera: Array<Date>;					// Array con los días de la semana
+		semanas: Array<Array<Date>>;				// Array con los días de cada semana del mes
+		fechaIni: Date;								// Fecha de inicio del rango a seleccionar (de momento desactivado)
+		fechaFin: Date;								// Fecha de fin del rango a seleccionar (de momento desactivado);
 	}
 
 	class Directive {
 
+		// Restringimos la directiva al tipo atributo
 		restrict = "A";
+
+		// Declaramos las variables que recogeremos de la directiva y registraremos en el scope
 		scope = {
-			dateType: "=",
-			min: "=?",
-			max: "=?"
+			dateType: "=",	// El tipo de calendario (day|month)
+			min: "=?",		// La fecha mínima
+			max: "=?",		// la fecha máxima
+			format: "@?" 	// Formato de la fecha
 		};
 
+
+		// Es necesaria la directiva ngModel (para poder establecer la fecha)
 		require = "ngModel";
 
 
-		link = (scope:IScopeDirectiva, elem:ng.IAugmentedJQuery, attrs:Array<Attr>, ngModel:ng.INgModelController) => {			
+		// Función de lincado
+		link = (scope: IScopeDirectiva, elem: ng.IAugmentedJQuery, attrs: Array<Attr>, ngModel: ng.INgModelController) => {
+
+			/**
+			 * Función que devuelve una fecha que comienza en el principio del día (a las 00:00:00 000ms)
+			 * Si se pasa como argumento una fecha, ésta se establece al principio del día
+			 * @type {Date}
+			 */
+			var initDate = (fecha?:Date) : Date => {
+
+				fecha = (fecha === undefined) ? new Date() : fecha;
+				fecha.setMilliseconds(0);
+				fecha.setHours(0);
+				fecha.setMinutes(0);
+				fecha.setSeconds(0);
+				return fecha;
+			};
+
+
 
 			var getCadena = (dia:Date) : string => {
 				if (dia === null) {
 					return "";
 				}
 
-				var mes = dia.getMonth() + 1;
-				var cadena = dia.getDate() + "-" + mes + "-" + dia.getFullYear();
-				return cadena;
+				if (!scope.format) {
+					scope.format = "d/MM/yyyy";
+				}
+				
+				return this.$filter("date")(dia, scope.format);
 			}
 
 			var aplicar = () => {
@@ -71,7 +101,7 @@ module DatePicker {
 								<span class="glyphicon glyphicon-arrow-left"></span>
 							</div>
 							<div class="col-xs-4" style="padding:10px;text-align:center;">
-								{{ngModel | date : 'yyyy'}}
+								{{puntero | date : 'yyyy'}}
 							</div>
 							<div class="col-xs-4" style="padding:10px;text-align:right;cursor:pointer;" ng-click="cambiaAno(1)">
 								<span class="glyphicon glyphicon-arrow-right"></span>
@@ -83,7 +113,7 @@ module DatePicker {
 								<span class="glyphicon glyphicon-arrow-left"></span>
 							</div>
 							<div class="col-xs-4" style="padding:10px;text-align:center;">
-								{{ngModel | date:'MMMM'}}
+								{{puntero | date:'MMMM'}}
 							</div>
 							<div class="col-xs-4" style="padding:10px;text-align:right;cursor:pointer" ng-click="cambiaMes(1)">
 								<span class="glyphicon glyphicon-arrow-right"></span>
@@ -135,7 +165,7 @@ module DatePicker {
 
 				scope.meses = [];
 
-				var ano = ngModel.$modelValue.getFullYear();
+				var ano = scope.puntero.getFullYear();
 				var m = 0; 
 
 				for (var i = 0; i < 12; i++) {
@@ -143,10 +173,7 @@ module DatePicker {
 					nuevoMes.setFullYear(ano);
 					nuevoMes.setMonth(i);
 					nuevoMes.setDate(1);
-					nuevoMes.setHours(0);
-					nuevoMes.setMinutes(0);
-					nuevoMes.setSeconds(0);
-					nuevoMes.setMilliseconds(0);
+					nuevoMes = initDate(nuevoMes);
 
 					if (i % 3 === 0 && i !== 0) {
 						m++;
@@ -192,17 +219,14 @@ module DatePicker {
 			var getDias = () => {
 				scope.dias = [];
 
-				var mes = ngModel.$modelValue.getMonth();
+				var mes = scope.puntero.getMonth();
 				
 				// Definimos el día 1
 				var dia = new Date();
 				dia.setMonth(mes);
 				dia.setDate(1);
-				dia.setFullYear(ngModel.$modelValue.getFullYear());
-				dia.setHours(0);
-				dia.setMinutes(0);
-				dia.setSeconds(0);
-				dia.setMilliseconds(0);
+				dia.setFullYear(scope.puntero.getFullYear());
+				dia = initDate(dia);
 				scope.dias.push(dia);
 
 				var nuevoDia = new Date(dia.getTime() + 86400000);
@@ -227,27 +251,25 @@ module DatePicker {
 						mes = (ngModel.$modelValue.getMonth() === 0) ? 11 : ngModel.$modelValue.getMonth() - 1;
 						dia = 1;
 						ano = (mes === 11) ? ngModel.$modelValue.getFullYear() - 1 : ngModel.$modelValue.getFullYear();
-						scope.ngModel = new Date();
-						ngModel.$modelValue.setMonth(mes);
-						ngModel.$modelValue.setDate(1);
-						ngModel.$modelValue.setFullYear(ano);
 						break;
 					case 1:
 						// Mes siguiente:
 						mes = (ngModel.$modelValue.getMonth() === 11) ? 0 : ngModel.$modelValue.getMonth() + 1;
 						dia = 1;
 						ano = (mes === 0) ? ngModel.$modelValue.getFullYear() + 1 : ngModel.$modelValue.getFullYear();
-						scope.ngModel = new Date();
-						ngModel.$modelValue.setMonth(mes);
-						ngModel.$modelValue.setDate(1);
-						ngModel.$modelValue.setFullYear(ano);
 						break;
 				}
+
+				scope.puntero.setDate(dia);
+				scope.puntero.setMonth(mes);
+				scope.puntero.setFullYear(ano);
+				getMeses();
+				getDias();
 			};
 
 			scope.cambiaAno = (ano) => {
-				ano = (ano === 1) ? ngModel.$modelValue.getFullYear() + 1 : ngModel.$modelValue.getFullYear() - 1;
-				ngModel.$modelValue.setFullYear(ano);
+				ano = (ano === 1) ? scope.puntero.getFullYear() + 1 : scope.puntero.getFullYear() - 1;
+				scope.puntero.setFullYear(ano);
 				getMeses();
 				getDias();
 			}
@@ -298,9 +320,9 @@ module DatePicker {
 			}
 
 			var esconder = () => {
-				angular.element(capa).remove();
-				capa = null;
 				scope.activo = false;
+				angular.element(capa).remove();
+				capa = null;				
 			};
 
 			var getDimensiones = () => {
@@ -313,6 +335,11 @@ module DatePicker {
 			}
 
 			var render = () => {
+				if (scope.puntero === null) {
+					scope.puntero = initDate();
+					getMeses();
+					getDias();
+				}
 				// Obtenemos el alto y ancho del elemento
 				var dim = getDimensiones();
 
@@ -336,14 +363,15 @@ module DatePicker {
 				if ((scope.min !== null && dia < scope.min) || (scope.max !== null && dia > scope.max)) {
 					return;
 				}
-
-				ngModel.$setViewValue(dia);
+				scope.puntero = dia;
+				ngModel.$setViewValue(new Date(dia.getTime()));
 				aplicar();
 				esconder();
 			}
 
 			scope.borrar = () => {
 				ngModel.$setViewValue(null);
+				scope.puntero = null;
 				aplicar();
 				esconder();
 			}			
@@ -359,8 +387,8 @@ module DatePicker {
 
 
 			if (isNaN(ngModel.$modelValue)) {
-				ngModel.$setViewValue(new Date());
-				console.log("Establecemos la fecha");
+				ngModel.$setViewValue(null);
+				scope.puntero = initDate();
 			}
 
 			getMeses();
@@ -368,11 +396,11 @@ module DatePicker {
 			aplicar();
 		}
 
-		constructor (private $compile:ng.ICompileService, private $document:ng.IDocumentService) {}
+		constructor (private $compile:ng.ICompileService, private $document:ng.IDocumentService, private $filter:ng.IFilterService) {}
 
 		static factory () : ng.IDirectiveFactory {
-			const directiva = ($compile:ng.ICompileService, $document:ng.IDocumentService) => new Directive($compile, $document);
-			directiva.$inject = ["$compile", "$document"];
+			const directiva = ($compile:ng.ICompileService, $document:ng.IDocumentService, $filter:ng.IFilterService) => new Directive($compile, $document, $filter);
+			directiva.$inject = ["$compile", "$document", "$filter"];
 			return directiva;
 		}
 	}
