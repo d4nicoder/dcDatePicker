@@ -18,9 +18,10 @@ module DatePicker {
 		cambiaAno: (ano: number) => void;
 		asignar: (dia:Date) => void;
 		borrar: () => void;
-		mouseover: (ev: Event) => void;
+		mouseover: (ev: Event, dia:Date) => void;
 		mouseout: (ev: Event) => void;
 		claseDia: (dia: Date) => string;
+		estiloDia: (dia: Date) => Object;
 		meses: Array<Array<Date>>;
 		dias: Array<Date>;
 		diasCabecera: Array<Date>;
@@ -35,15 +36,13 @@ module DatePicker {
 		scope = {
 			dateType: "=",
 			min: "=",
-			max: "=",
-			range: "="
+			max: "="
 		};
 
 		require = "ngModel";
 
 
 		link = (scope:IScopeDirectiva, elem:ng.IAugmentedJQuery, attrs:Array<Attr>, ngModel:ng.INgModelController) => {
-
 
 			var getCadena = (dia:Date) : string => {
 				if (dia === null) {
@@ -108,7 +107,7 @@ module DatePicker {
 						<table class="table" ng-if="dateType==='month'">
 							<!-- Ahora las filas de los meses (en caso de que sea vista tipo mes) -->
 							<tr ng-repeat="mes in meses">
-								<td ng-repeat="dia in mes" ng-class="claseDia(dia)" ng-click="asignar(dia)" style="cursor:pointer;text-align:center;" ng-mouseover="mouseover($event)" ng-mouseleave="mouseout($event)">{{dia | date:'MMM'}}</td>
+								<td ng-repeat="dia in mes" ng-style="estiloDia(dia)" ng-class="claseDia(dia)" ng-click="asignar(dia)" style="cursor:pointer;text-align:center;" ng-mouseover="mouseover($event, dia)" ng-mouseleave="mouseout($event)">{{dia | date:'MMM'}}</td>
 							</tr>
 						</div>
 						<!-- Ahora en caso de que sea fecha de tipo día lo mostramos como una tabla -->
@@ -117,7 +116,7 @@ module DatePicker {
 								<th ng-repeat="dia in diasCabecera track by $index" style="text-align:center;">{{dia | date : 'EEE'}}</th>
 							</tr>
 							<tr ng-repeat="semana in semanas track by $index">
-								<td ng-repeat="dia in semana track by $index" ng-class="claseDia(dia)" ng-click="asignar(dia)" style="cursor:pointer;text-align:center;" ng-mouseover="mouseover($event)" ng-mouseleave="mouseout($event)">{{dia | date:'d'}}</td>
+								<td ng-repeat="dia in semana track by $index" ng-style="estiloDia(dia)" ng-class="claseDia(dia)" ng-click="asignar(dia)" style="cursor:pointer;text-align:center;" ng-mouseover="mouseover($event, dia)" ng-mouseleave="mouseout($event)">{{dia | date:'d'}}</td>
 							</tr>
 						</table>
 						<div class="btn-group">
@@ -271,6 +270,16 @@ module DatePicker {
 				return (dia !== null && getCadena(dia) === getCadena(ngModel.$modelValue)) ? "bg-success" : "";
 			}
 
+			scope.estiloDia = (dia) => {
+				if ((scope.min !== null) && dia < scope.min || (scope.max !== null && dia > scope.max)) {
+					return {
+						"color": "#999999"
+					}
+				} else {
+					return {};
+				}
+			}
+
 
 			var capa:ng.IAugmentedJQuery = null;
 			scope.activo = false;
@@ -290,7 +299,10 @@ module DatePicker {
 				
 			});
 
-			scope.mouseover = (ev) => {
+			scope.mouseover = (ev, dia) => {
+				if ((scope.min !== null) && dia < scope.min || (scope.max !== null && dia > scope.max)) {
+					return "";
+				}
 				angular.element(ev.target).addClass("bg-primary");
 			}
 
@@ -333,6 +345,11 @@ module DatePicker {
 			}
 
 			scope.asignar = (dia) => {
+
+				if ((scope.min !== null && dia < scope.min) || (scope.max !== null && dia > scope.max)) {
+					return;
+				}
+
 				ngModel.$setViewValue(dia);
 				aplicar();
 				esconder();
@@ -351,6 +368,14 @@ module DatePicker {
 					getMeses();
 					getDias();
 				}
+			});
+
+			scope.$watch("min", (nueva: Date) => {
+				scope.min = (nueva === undefined || nueva === null) ? null : nueva;
+			});
+
+			scope.$watch("max", (nueva: Date) => {
+				scope.max = (nueva === undefined || nueva === null) ? null : nueva;
 			});
 		}
 
