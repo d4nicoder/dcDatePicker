@@ -78,7 +78,7 @@ module DatePicker {
 			}
 
 			var template = `
-				<div style="position:absolute;display:block;background-color:white;left:{{left}}px;top:{{top}}px;min-width:{{width}}px;padding:10px;box-shadow:0 3px 3px rgba(0,0,0,0.5);">
+				<div style="position:absolute;display:block;background-color:white;left:{{left}}px;top:{{top}}px;min-width:{{width}}px;padding:10px;box-shadow:0 3px 3px rgba(0,0,0,0.5);z-index:1000;">
 					<div class="container-fluid">
 						<div class="row bg-primary" style="margin-left:-25px;margin-right:-25px;margin-top:-10px;">
 							<!--Mostramos la fila que contiene los años-->
