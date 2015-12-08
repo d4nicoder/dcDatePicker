@@ -43,3 +43,8 @@ You can also define "min" and "max" date to prvent user to select dates out of r
 <input type="text" ng-model="myVar" dc-date-picker date-type="day" min="dateMin" max="dateMax">
 ```
 ![Month preview](https://raw.github.com/danitetus/dcDatepicker/master/screenshots/rango.png "Month view")
+
+You can define de date format shown in the input text. This function uses de angular date filter
+```html
+<input type="text" ng-model="myVar" dc-date-picker date-type="day" min="dateMin" max="dateMax" format="d 'of' MMMM 'of' yyyy">
+```
