@@ -4,7 +4,7 @@
     "Daniel Cañada García <danitetus@gmail.com>"
   ],
   "description": "A simple angular directive to show calendar on an input element.",
-  "main": "",
+  "main": "datepicker.js",
   "moduleType": [],
   "license": "MIT",
   "homepage": "https://github.com/danitetus/dcDatePicker",

@@ -9,8 +9,8 @@ var DatePicker;
             this.restrict = "A";
             this.scope = {
                 dateType: "=",
-                min: "=",
-                max: "="
+                min: "=?",
+                max: "=?"
             };
             this.require = "ngModel";
             this.link = function (scope, elem, attrs, ngModel) {

@@ -17,7 +17,7 @@ Tu use the directive, inject the module in your angular app
 ```
 
 ```javascript
-angular.module("myApp",["dcDatepicker"]);
+angular.module("myApp",["dcDatePicker"]);
 ```
 Then use in an input element
 

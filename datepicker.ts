@@ -35,8 +35,8 @@ module DatePicker {
 		restrict = "A";
 		scope = {
 			dateType: "=",
-			min: "=",
-			max: "="
+			min: "=?",
+			max: "=?"
 		};
 
 		require = "ngModel";
