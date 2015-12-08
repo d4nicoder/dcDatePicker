@@ -205,13 +205,11 @@ var DatePicker;
                     }
                     scope.puntero = dia;
                     ngModel.$setViewValue(new Date(dia.getTime()));
-                    aplicar();
                     esconder();
                 };
                 scope.borrar = function () {
                     ngModel.$setViewValue(null);
                     scope.puntero = null;
-                    aplicar();
                     esconder();
                 };
                 scope.$watch("min", function (nueva) {
@@ -219,6 +217,9 @@ var DatePicker;
                 });
                 scope.$watch("max", function (nueva) {
                     scope.max = (nueva === undefined || nueva === null) ? null : nueva;
+                });
+                ngModel.$viewChangeListeners.push(function () {
+                    aplicar();
                 });
                 if (isNaN(ngModel.$modelValue)) {
                     ngModel.$setViewValue(null);

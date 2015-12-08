@@ -362,14 +362,13 @@ module DatePicker {
 				}
 				scope.puntero = dia;
 				ngModel.$setViewValue(new Date(dia.getTime()));
-				aplicar();
+				//aplicar();
 				esconder();
 			}
 
 			scope.borrar = () => {
 				ngModel.$setViewValue(null);
 				scope.puntero = null;
-				aplicar();
 				esconder();
 			}			
 
@@ -382,6 +381,10 @@ module DatePicker {
 				scope.max = (nueva === undefined || nueva === null) ? null : nueva;
 			});
 
+
+			ngModel.$viewChangeListeners.push(() => {
+				aplicar();
+			});
 
 			if (isNaN(ngModel.$modelValue)) {
 				ngModel.$setViewValue(null);
