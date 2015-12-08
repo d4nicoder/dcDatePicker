@@ -42,7 +42,7 @@ module DatePicker {
 		require = "ngModel";
 
 
-		link = (scope:IScopeDirectiva, elem:ng.IAugmentedJQuery, attrs:Array<Attr>, ngModel:ng.INgModelController) => {
+		link = (scope:IScopeDirectiva, elem:ng.IAugmentedJQuery, attrs:Array<Attr>, ngModel:ng.INgModelController) => {			
 
 			var getCadena = (dia:Date) : string => {
 				if (dia === null) {
@@ -60,21 +60,6 @@ module DatePicker {
 				//ngModel.$setViewValue(cadena);
 				elem.val(getCadena(dia));
 				//ngModel.$render();
-			}
-
-			if (Object.prototype.toString.call(ngModel.$modelValue) !== "[object Date]") {
-				var fecha = new Date();
-				fecha.setHours(0);
-				fecha.setMinutes(0);
-				fecha.setSeconds(0);
-				fecha.setMilliseconds(0);
-
-				if (scope.dateType === "month") {
-					fecha.setDate(1);
-				}
-				ngModel.$setViewValue(fecha);
-
-				aplicar();
 			}
 
 			var template = `
@@ -128,8 +113,6 @@ module DatePicker {
 
 			elem.css("cursor", "pointer");
 
-			scope.ngModel = ngModel.$modelValue;
-
 			scope.diasCabecera = [];
 
 			var dia = new Date();
@@ -152,7 +135,7 @@ module DatePicker {
 
 				scope.meses = [];
 
-				var ano = scope.ngModel.getFullYear();
+				var ano = ngModel.$modelValue.getFullYear();
 				var m = 0; 
 
 				for (var i = 0; i < 12; i++) {
@@ -209,13 +192,13 @@ module DatePicker {
 			var getDias = () => {
 				scope.dias = [];
 
-				var mes = scope.ngModel.getMonth();
+				var mes = ngModel.$modelValue.getMonth();
 				
 				// Definimos el día 1
 				var dia = new Date();
 				dia.setMonth(mes);
 				dia.setDate(1);
-				dia.setFullYear(scope.ngModel.getFullYear());
+				dia.setFullYear(ngModel.$modelValue.getFullYear());
 				dia.setHours(0);
 				dia.setMinutes(0);
 				dia.setSeconds(0);
@@ -234,33 +217,37 @@ module DatePicker {
 
 			scope.cambiaMes = (tipo: number) => {
 
+				var mes: number = null;
+				var dia: number = null;
+				var ano: number = null;
+
 				switch (tipo) {
 					case -1:
 						// Mes anterior:
-						var mes = (scope.ngModel.getMonth() === 0) ? 11 : scope.ngModel.getMonth() - 1;
-						var dia = 1;
-						var ano = (mes === 11) ? scope.ngModel.getFullYear() - 1 : scope.ngModel.getFullYear();
+						mes = (ngModel.$modelValue.getMonth() === 0) ? 11 : ngModel.$modelValue.getMonth() - 1;
+						dia = 1;
+						ano = (mes === 11) ? ngModel.$modelValue.getFullYear() - 1 : ngModel.$modelValue.getFullYear();
 						scope.ngModel = new Date();
-						scope.ngModel.setMonth(mes);
-						scope.ngModel.setDate(1);
-						scope.ngModel.setFullYear(ano);
+						ngModel.$modelValue.setMonth(mes);
+						ngModel.$modelValue.setDate(1);
+						ngModel.$modelValue.setFullYear(ano);
 						break;
 					case 1:
 						// Mes siguiente:
-						var mes = (scope.ngModel.getMonth() === 11) ? 0 : scope.ngModel.getMonth() + 1;
-						var dia = 1;
-						var ano = (mes === 0) ? scope.ngModel.getFullYear() + 1 : scope.ngModel.getFullYear();
+						mes = (ngModel.$modelValue.getMonth() === 11) ? 0 : ngModel.$modelValue.getMonth() + 1;
+						dia = 1;
+						ano = (mes === 0) ? ngModel.$modelValue.getFullYear() + 1 : ngModel.$modelValue.getFullYear();
 						scope.ngModel = new Date();
-						scope.ngModel.setMonth(mes);
-						scope.ngModel.setDate(1);
-						scope.ngModel.setFullYear(ano);
+						ngModel.$modelValue.setMonth(mes);
+						ngModel.$modelValue.setDate(1);
+						ngModel.$modelValue.setFullYear(ano);
 						break;
 				}
 			};
 
 			scope.cambiaAno = (ano) => {
-				ano = (ano === 1) ? scope.ngModel.getFullYear() + 1 : scope.ngModel.getFullYear() - 1;
-				scope.ngModel.setFullYear(ano);
+				ano = (ano === 1) ? ngModel.$modelValue.getFullYear() + 1 : ngModel.$modelValue.getFullYear() - 1;
+				ngModel.$modelValue.setFullYear(ano);
 				getMeses();
 				getDias();
 			}
@@ -362,14 +349,6 @@ module DatePicker {
 			}			
 
 			
-
-			scope.$watch("ngModel", (nueva) => {
-				if (nueva !== undefined) {
-					getMeses();
-					getDias();
-				}
-			});
-
 			scope.$watch("min", (nueva: Date) => {
 				scope.min = (nueva === undefined || nueva === null) ? null : nueva;
 			});
@@ -377,6 +356,16 @@ module DatePicker {
 			scope.$watch("max", (nueva: Date) => {
 				scope.max = (nueva === undefined || nueva === null) ? null : nueva;
 			});
+
+
+			if (isNaN(ngModel.$modelValue)) {
+				ngModel.$setViewValue(new Date());
+				console.log("Establecemos la fecha");
+			}
+
+			getMeses();
+			getDias();
+			aplicar();
 		}
 
 		constructor (private $compile:ng.ICompileService, private $document:ng.IDocumentService) {}
