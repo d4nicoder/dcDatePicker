@@ -45,6 +45,7 @@ module DatePicker {
 
 		// Declaramos las variables que recogeremos de la directiva y registraremos en el scope
 		scope = {
+			ngModel: "=",
 			dateType: "=",	// El tipo de calendario (day|month)
 			min: "=?",		// La fecha mínima
 			max: "=?",		// la fecha máxima
@@ -581,19 +582,18 @@ module DatePicker {
 				notDays = (Array.isArray(nueva)) ? nueva : null;
 			});
 
+			//scope.ngModel = ngModel.$modelValue;
 
-			ngModel.$viewChangeListeners.push(() => {
-				aplicar();
+			scope.$watch("ngModel", (nueva:Date) => {
+				var tipo = Object.prototype.toString.call(nueva);
+
+				if (tipo === '[object Date]') {
+					scope.puntero = nueva;
+					getMeses();
+					getDias();
+					aplicar();
+				}
 			});
-
-			if (isNaN(ngModel.$modelValue)) {
-				ngModel.$setViewValue(null);
-				scope.puntero = initDate();
-			}
-
-			getMeses();
-			getDias();
-			aplicar();
 		}
 
 		constructor (private $compile:ng.ICompileService, private $document:ng.IDocumentService, private $filter:ng.IFilterService) {}

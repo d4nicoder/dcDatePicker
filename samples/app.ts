@@ -2,10 +2,10 @@
 
 class miAppController {
 
-	static $inject = ["$scope"];
+	static $inject = ["$scope", "$timeout"];
 
 	fecha1 = {
-		date : new Date(),
+		date : null,
 		notDays: [0,6]
 	};
 
@@ -40,8 +40,10 @@ class miAppController {
 		min: new Date(2015,11,5,0,0,0,0)
 	};
 
-	constructor(private $scope:ng.IScope) {
-
+	constructor(private $scope:ng.IScope, $timeout:ng.ITimeoutService) {
+		$timeout(() => {
+			this.fecha1.date = new Date(1985,0,21,0,0,0,0);
+		}, 2000);
 	}
 }
 

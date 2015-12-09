@@ -1,8 +1,9 @@
 var miAppController = (function () {
-    function miAppController($scope) {
+    function miAppController($scope, $timeout) {
+        var _this = this;
         this.$scope = $scope;
         this.fecha1 = {
-            date: new Date(),
+            date: null,
             notDays: [0, 6]
         };
         this.fecha2 = {
@@ -30,8 +31,11 @@ var miAppController = (function () {
             max: new Date(2015, 11, 25, 0, 0, 0, 0),
             min: new Date(2015, 11, 5, 0, 0, 0, 0)
         };
+        $timeout(function () {
+            _this.fecha1.date = new Date(1985, 0, 21, 0, 0, 0, 0);
+        }, 2000);
     }
-    miAppController.$inject = ["$scope"];
+    miAppController.$inject = ["$scope", "$timeout"];
     return miAppController;
 })();
 angular.module("miApp", ["dcDatePicker"]).controller("testController", miAppController);

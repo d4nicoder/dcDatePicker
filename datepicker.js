@@ -9,6 +9,7 @@ var DatePicker;
             this.$filter = $filter;
             this.restrict = "A";
             this.scope = {
+                ngModel: "=",
                 dateType: "=",
                 min: "=?",
                 max: "=?",
@@ -285,16 +286,15 @@ var DatePicker;
                 scope.$watch("notDays", function (nueva) {
                     notDays = (Array.isArray(nueva)) ? nueva : null;
                 });
-                ngModel.$viewChangeListeners.push(function () {
-                    aplicar();
+                scope.$watch("ngModel", function (nueva) {
+                    var tipo = Object.prototype.toString.call(nueva);
+                    if (tipo === '[object Date]') {
+                        scope.puntero = nueva;
+                        getMeses();
+                        getDias();
+                        aplicar();
+                    }
                 });
-                if (isNaN(ngModel.$modelValue)) {
-                    ngModel.$setViewValue(null);
-                    scope.puntero = initDate();
-                }
-                getMeses();
-                getDias();
-                aplicar();
             };
         }
         Directive.factory = function () {
