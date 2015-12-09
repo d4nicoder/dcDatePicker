@@ -17,7 +17,8 @@ var DatePicker;
                 notAllowed: "=?",
                 onlyAllowed: "=?",
                 onlyDays: "=?",
-                notDays: "=?"
+                notDays: "=?",
+                isOpen: "=?"
             };
             this.require = "ngModel";
             this.link = function (scope, elem, attrs, ngModel) {
@@ -27,6 +28,7 @@ var DatePicker;
                 var onlyAllowed = null;
                 var notDays = null;
                 var onlyDays = null;
+                var abierto = false;
                 var initDate = function (fecha) {
                     var tipo = Object.prototype.toString.call(fecha);
                     fecha = (tipo !== '[object Date]') ? new Date() : fecha;
@@ -191,13 +193,15 @@ var DatePicker;
                 scope.activo = false;
                 elem.attr("readonly", "true");
                 elem.on("click", function () {
-                    if (scope.activo) {
+                    if (abierto) {
                         scope.$apply(function () {
+                            scope.isOpen = false;
                             esconder();
                         });
                     }
                     else {
                         scope.$apply(function () {
+                            scope.isOpen = true;
                             render();
                         });
                     }
@@ -212,7 +216,7 @@ var DatePicker;
                     angular.element(ev.target).removeClass("bg-primary");
                 };
                 var esconder = function () {
-                    scope.activo = false;
+                    abierto = false;
                     angular.element(capa).remove();
                     capa = null;
                 };
@@ -224,6 +228,9 @@ var DatePicker;
                     return { top: top, left: left };
                 };
                 var render = function () {
+                    if (abierto) {
+                        return;
+                    }
                     if (scope.puntero === null) {
                         scope.puntero = initDate();
                         getMeses();
@@ -235,7 +242,7 @@ var DatePicker;
                     scope.width = elem[0].offsetWidth;
                     capa = _this.$compile(template)(scope);
                     angular.element(_this.$document[0].body).append(capa);
-                    scope.activo = true;
+                    abierto = true;
                 };
                 scope.asignar = function (dia) {
                     if (!checkDay(dia)) {
@@ -285,6 +292,14 @@ var DatePicker;
                 });
                 scope.$watch("notDays", function (nueva) {
                     notDays = (Array.isArray(nueva)) ? nueva : null;
+                });
+                scope.$watch("isOpen", function (nueva) {
+                    if (nueva === true) {
+                        render();
+                    }
+                    else {
+                        esconder();
+                    }
                 });
                 scope.$watch("ngModel", function (nueva) {
                     var tipo = Object.prototype.toString.call(nueva);

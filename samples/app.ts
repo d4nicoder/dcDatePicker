@@ -40,6 +40,11 @@ class miAppController {
 		min: new Date(2015,11,5,0,0,0,0)
 	};
 
+	fecha8 = {
+		date: new Date(),
+		open: false
+	};
+
 	constructor(private $scope:ng.IScope, $timeout:ng.ITimeoutService) {
 		$timeout(() => {
 			this.fecha1.date = new Date(1985,0,21,0,0,0,0);

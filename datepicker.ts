@@ -21,6 +21,7 @@ module DatePicker {
 		cambiaMes: (tipo: number) => void; // Función para cambiar el més del calendario
 		cambiaAno: (ano: number) => void; 	// Función para cambiar el año del calendario
 		asignar: (dia:Date) => void;		// Método para asignar la fecha que hemos seleccionado
+		isOpen: boolean;					// Variable que determina si el calendario está abierto o no
 		borrar: () => void; 				// Método para borrar la fecha del calendario
 		mouseover: (ev: Event, dia:Date) => void; 	// Método para cambiar el estilo del día/mes cuando pasa el ratón por encima
 		mouseout: (ev: Event) => void; 				// Método para dejar el estilo como estaba cuando el ratón se marcha
@@ -53,7 +54,8 @@ module DatePicker {
 			notAllowed: "=?", // Array con las fechas no permitidas
 			onlyAllowed: "=?", // Array con las únicas fechas que son seleccionables
 			onlyDays: "=?", // Array con los días de la semana que son permitidos
-			notDays: "=?" // Array con los días de la semana que están prohibidos
+			notDays: "=?", // Array con los días de la semana que están prohibidos
+			isOpen: "=?"	// Para poder abrir el calendario de forma externa
 		};
 
 
@@ -71,6 +73,7 @@ module DatePicker {
 			var onlyAllowed:Array<number> = null;
 			var notDays:Array<number> = null;
 			var onlyDays:Array<number> = null;
+			var abierto: boolean = false;
 
 
 			/**
@@ -460,13 +463,15 @@ module DatePicker {
 
 			// Cuando el usuario haga click en el cuadro de texto, renderizaremos el calendario o lo ocultaremos
 			elem.on("click", () => {
-				if (scope.activo) {
+				if (abierto) {
 					// Lo ocultamos
 					scope.$apply(() => {
+						scope.isOpen = false;
 						esconder();
 					});					
 				} else {
 					scope.$apply(() => {
+						scope.isOpen = true;
 						render();
 					});		
 				}
@@ -486,7 +491,7 @@ module DatePicker {
 			}
 
 			var esconder = () => {
-				scope.activo = false;
+				abierto = false;
 				angular.element(capa).remove();
 				capa = null;				
 			};
@@ -501,6 +506,9 @@ module DatePicker {
 			}
 
 			var render = () => {
+				if (abierto) {
+					return;
+				}
 				if (scope.puntero === null) {
 					scope.puntero = initDate();
 					getMeses();
@@ -520,8 +528,7 @@ module DatePicker {
 				capa = this.$compile(template)(scope);
 				//elem.parent().append(capa);
 				angular.element(this.$document[0].body).append(capa);
-
-				scope.activo = true;
+				abierto = true;
 			}
 
 			scope.asignar = (dia) => {
@@ -582,7 +589,13 @@ module DatePicker {
 				notDays = (Array.isArray(nueva)) ? nueva : null;
 			});
 
-			//scope.ngModel = ngModel.$modelValue;
+			scope.$watch("isOpen", (nueva:boolean) => {
+				if (nueva === true) {
+					render();
+				} else {
+					esconder();
+				}
+			});
 
 			scope.$watch("ngModel", (nueva:Date) => {
 				var tipo = Object.prototype.toString.call(nueva);
