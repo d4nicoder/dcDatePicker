@@ -288,12 +288,15 @@ var DatePicker;
                 });
                 scope.$watch("ngModel", function (nueva) {
                     var tipo = Object.prototype.toString.call(nueva);
-                    if (tipo === '[object Date]') {
+                    if (tipo === '[object Date]' && nueva !== null) {
                         scope.puntero = nueva;
-                        getMeses();
-                        getDias();
-                        aplicar();
                     }
+                    else {
+                        scope.puntero = initDate();
+                    }
+                    getMeses();
+                    getDias();
+                    aplicar();
                 });
             };
         }
