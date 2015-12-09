@@ -12,12 +12,23 @@ var DatePicker;
                 dateType: "=",
                 min: "=?",
                 max: "=?",
-                format: "@?"
+                format: "@?",
+                notAllowed: "=?",
+                onlyAllowed: "=?",
+                onlyDays: "=?",
+                notDays: "=?"
             };
             this.require = "ngModel";
             this.link = function (scope, elem, attrs, ngModel) {
+                var max = null;
+                var min = null;
+                var notAllowed = null;
+                var onlyAllowed = null;
+                var notDays = null;
+                var onlyDays = null;
                 var initDate = function (fecha) {
-                    fecha = (fecha === undefined) ? new Date() : fecha;
+                    var tipo = Object.prototype.toString.call(fecha);
+                    fecha = (tipo !== '[object Date]') ? new Date() : fecha;
                     fecha.setMilliseconds(0);
                     fecha.setHours(0);
                     fecha.setMinutes(0);
@@ -123,6 +134,8 @@ var DatePicker;
                             dia = 1;
                             ano = (mes === 0) ? scope.puntero.getFullYear() + 1 : scope.puntero.getFullYear();
                             break;
+                        default:
+                            return;
                     }
                     scope.puntero.setDate(dia);
                     scope.puntero.setMonth(mes);
@@ -139,8 +152,32 @@ var DatePicker;
                 scope.claseDia = function (dia) {
                     return (dia !== null && getCadena(dia) === getCadena(ngModel.$modelValue)) ? "bg-success" : "";
                 };
+                var checkDay = function (dia) {
+                    if (dia === null) {
+                        return false;
+                    }
+                    if (min !== null && dia < min) {
+                        return false;
+                    }
+                    if (max !== null && dia > max) {
+                        return false;
+                    }
+                    if (Array.isArray(onlyAllowed) && onlyAllowed.indexOf(dia.getTime()) < 0) {
+                        return false;
+                    }
+                    if (Array.isArray(notAllowed) && notAllowed.indexOf(dia.getTime()) >= 0) {
+                        return false;
+                    }
+                    if (Array.isArray(onlyDays) && onlyDays.indexOf(dia.getDay()) < 0) {
+                        return false;
+                    }
+                    if (Array.isArray(notDays) && notDays.indexOf(dia.getDay()) >= 0) {
+                        return false;
+                    }
+                    return true;
+                };
                 scope.estiloDia = function (dia) {
-                    if ((scope.min !== null) && dia < scope.min || (scope.max !== null && dia > scope.max)) {
+                    if (!checkDay(dia)) {
                         return {
                             "color": "#999999"
                         };
@@ -165,7 +202,7 @@ var DatePicker;
                     }
                 });
                 scope.mouseover = function (ev, dia) {
-                    if ((scope.min !== null) && dia < scope.min || (scope.max !== null && dia > scope.max)) {
+                    if (!checkDay(dia)) {
                         return "";
                     }
                     angular.element(ev.target).addClass("bg-primary");
@@ -200,7 +237,7 @@ var DatePicker;
                     scope.activo = true;
                 };
                 scope.asignar = function (dia) {
-                    if ((scope.min !== null && dia < scope.min) || (scope.max !== null && dia > scope.max)) {
+                    if (!checkDay(dia)) {
                         return;
                     }
                     scope.puntero = dia;
@@ -213,10 +250,40 @@ var DatePicker;
                     esconder();
                 };
                 scope.$watch("min", function (nueva) {
-                    scope.min = (nueva === undefined || nueva === null) ? null : nueva;
+                    min = (nueva === undefined || nueva === null) ? null : nueva;
                 });
                 scope.$watch("max", function (nueva) {
-                    scope.max = (nueva === undefined || nueva === null) ? null : nueva;
+                    max = (nueva === undefined || nueva === null) ? null : nueva;
+                });
+                scope.$watch("onlyAllowed", function (nueva) {
+                    var nuevas = [];
+                    if (Array.isArray(nueva)) {
+                        for (var i = 0; i < nueva.length; i++) {
+                            nuevas[i] = initDate(nueva[i]).getTime();
+                        }
+                        onlyAllowed = nuevas;
+                    }
+                    else {
+                        onlyAllowed = null;
+                    }
+                });
+                scope.$watch("notAllowed", function (nueva) {
+                    var nuevas = [];
+                    if (Array.isArray(nueva)) {
+                        for (var i = 0; i < nueva.length; i++) {
+                            nuevas[i] = initDate(nueva[i]).getTime();
+                        }
+                        notAllowed = nuevas;
+                    }
+                    else {
+                        notAllowed = null;
+                    }
+                });
+                scope.$watch("onlyDays", function (nueva) {
+                    onlyDays = (Array.isArray(nueva)) ? nueva : null;
+                });
+                scope.$watch("notDays", function (nueva) {
+                    notDays = (Array.isArray(nueva)) ? nueva : null;
                 });
                 ngModel.$viewChangeListeners.push(function () {
                     aplicar();
