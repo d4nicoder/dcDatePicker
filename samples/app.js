@@ -35,6 +35,10 @@ var miAppController = (function () {
             date: new Date(),
             open: false
         };
+        this.fecha9 = {
+            date: new Date(),
+            open: false
+        };
         $timeout(function () {
             _this.fecha1.date = new Date(1985, 0, 21, 0, 0, 0, 0);
         }, 2000);

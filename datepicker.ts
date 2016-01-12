@@ -10,6 +10,7 @@ module DatePicker {
 	interface IScopeDirectiva extends ng.IScope {
 		puntero: Date; 			// Es un puntero que mantiene la fecha interna que tenemos seleccionada (temporalmente);
 		dateType: string;		// El tipo de calendario que se mostrará (day|month)
+		hour?: boolean;         // Si este valor es true, el usuario podrá especificar la hora del día también
 		min: Date;				// La fecha mínima que se puede seleccionar
 		max: Date; 				// La fecha máxima que se puede seleccionar
 		format: string;			// Formato con el que se renderizará la fecha (compatible con el filtro date de angular)
@@ -21,6 +22,9 @@ module DatePicker {
 		cambiaMes: (tipo: number) => void; // Función para cambiar el més del calendario
 		cambiaAno: (ano: number) => void; 	// Función para cambiar el año del calendario
 		asignar: (dia:Date) => void;		// Método para asignar la fecha que hemos seleccionado
+		intHora: number;                    // Hora actual seleccionada
+		intMinutos: number;                 // Minutos actuales seleccionados
+		asignarHora:() => void               // Método que sustituye a asignar() cuando se activa la hora
 		isOpen: boolean;					// Variable que determina si el calendario está abierto o no
 		borrar: () => void; 				// Método para borrar la fecha del calendario
 		mouseover: (ev: Event, dia:Date) => void; 	// Método para cambiar el estilo del día/mes cuando pasa el ratón por encima
@@ -48,6 +52,7 @@ module DatePicker {
 		scope = {
 			ngModel: "=",
 			dateType: "=",	// El tipo de calendario (day|month)
+			hour:"=?",      // Definiremos si también se adjunta la hora de la fecha (solo compatible con la vista día)
 			min: "=?",		// La fecha mínima
 			max: "=?",		// la fecha máxima
 			format: "@?", 	// Formato de la fecha
@@ -74,6 +79,10 @@ module DatePicker {
 			var notDays:Array<number> = null;
 			var onlyDays:Array<number> = null;
 			var abierto: boolean = false;
+			var hora: boolean = false;
+
+			scope.intHora = null;
+			scope.intMinutos = null;
 
 
 			/**
@@ -84,10 +93,14 @@ module DatePicker {
 			var initDate = (fecha?:Date) : Date => {
 				var tipo = Object.prototype.toString.call(fecha);
 				fecha = (tipo !== '[object Date]') ? new Date() : fecha;
-				fecha.setMilliseconds(0);
-				fecha.setHours(0);
-				fecha.setMinutes(0);
-				fecha.setSeconds(0);
+
+				// si no queremos establecera la hora, reseteamos el día a la hora 0, si no, lo dejamos como está
+				if (!hora) {
+					fecha.setMilliseconds(0);
+					fecha.setHours(0);
+					fecha.setMinutes(0);
+					fecha.setSeconds(0);
+				}
 				return fecha;
 			};
 
@@ -109,7 +122,24 @@ module DatePicker {
 				}
 				
 				return this.$filter("date")(dia, scope.format);
-			}
+			};
+
+			var mismoDia = (fecha1: Date, fecha2: Date): boolean => {
+				var f1 = new Date(fecha1.getTime());
+				var f2 = new Date(fecha2.getTime());
+
+				f1.setHours(0);
+				f1.setMilliseconds(0);
+				f1.setMinutes(0);
+				f1.setSeconds(0);
+
+				f2.setHours(0);
+				f2.setMilliseconds(0);
+				f2.setMinutes(0);
+				f2.setSeconds(0);
+
+				return (f1.getTime() === f2.getTime());
+			};
 
 			/**
 			 * Con esta función aplicamos el formato de la fecha en la casilla del input.
@@ -127,7 +157,7 @@ module DatePicker {
 				Así no tenemos que recurrir a un fichero externo
 			 */
 			var template = `
-				<div style="position:absolute;display:block;background-color:white;left:{{left}}px;top:{{top}}px;min-width:{{width}}px;padding:10px;box-shadow:0 3px 3px rgba(0,0,0,0.5);z-index:1000;">
+				<div style="position:absolute;display:block;background-color:white;left:{{left}}px;top:{{top}}px;min-width:{{width}}px;max-width:400px;padding:10px;box-shadow:0 3px 3px rgba(0,0,0,0.5);z-index:1000;">
 					<div class="container-fluid">
 						<div class="row bg-primary" style="margin-left:-25px;margin-right:-25px;margin-top:-10px;">
 							<!--Mostramos la fila que contiene los años-->
@@ -168,12 +198,30 @@ module DatePicker {
 								<td ng-repeat="dia in semana track by $index" ng-style="estiloDia(dia)" ng-class="claseDia(dia)" ng-click="asignar(dia)" style="cursor:pointer;text-align:center;" ng-mouseover="mouseover($event, dia)" ng-mouseleave="mouseout($event)">{{dia | date:'d'}}</td>
 							</tr>
 						</table>
-						<div class="btn-group">
+						<table class="table" ng-if="hour">
+							<tr>
+								<td style="text-align:right;">
+									<div class="input-group">
+										<span class="input-group-addon">Hora</span>
+										<input type="number" class="form-control" ng-model="intHora" ng-blur="setHora($event)">
+									</div>
+								</td>
+								<td style="text-align:left;">
+									<div class="input-group">
+										<input type="number" class="form-control" ng-model="intMinutos" ng-blur="setMinutes($event)">
+										<span class="input-group-addon">Min</span>
+									</div>
+								</td>
+							</tr>
+						</table>
+						<div class="btn-group" style="margin-top:15px;">
 							<button class="btn-default btn btn-sm" ng-click="borrar()">Borrar</button>
+							<button class="btn btn-primary btn-sm" ng-click="asignarHora()">Asignar</button>
 						</div>
 					</div>
 				</div>
 			`;
+
 
 			// Para que el usuario sepa que debe hacer click en la casilla de fecha,
 			// cambiamos la forma del cursor a 'pointer'
@@ -381,14 +429,34 @@ module DatePicker {
 				scope.puntero.setFullYear(ano);
 				getMeses();
 				getDias();
-			}
+			};
+
+			/**
+			 * Método que se dispara en la pérdida de foco del campo de horas y asigna el valor a la variable
+			 * del scope
+			 * @param $ev
+			 */
+			scope.setHora = ($ev) => {
+				scope.intHora = parseInt($ev.target.value);
+				scope.puntero.setHours(scope.intHora);
+			};
+
+			/**
+			 * Método que se dispara en la pérdida de foco del campo de minutos y asigna el valor a la variable
+			 * del scope
+			 * @param $ev
+			 */
+			scope.setMinutes = ($ev) => {
+				scope.intMinutos = parseInt($ev.target.value);
+				scope.puntero.setMinutes(scope.intMinutos);
+			};
 
 			/**
 			 * Método para calcular el estilo visual de un día. Si el día está seleccionado lo marcamos en verde
 			 * @type {[type]}
 			 */
 			scope.claseDia = (dia) => {
-				return (dia !== null && getCadena(dia) === getCadena(ngModel.$modelValue)) ? "bg-success" : "";
+				return (dia !== null && mismoDia(dia, ngModel.$modelValue)) ? "bg-success" : "";
 			}
 
 
@@ -537,24 +605,55 @@ module DatePicker {
 					return;
 				}
 				scope.puntero = dia;
-				ngModel.$setViewValue(new Date(dia.getTime()));
+
+
+				if (typeof scope.intHora !== "undefined" && scope.intHora !== null) {
+					let hora = parseInt(scope.intHora);
+					scope.puntero.setHours(hora);
+				}
+
+				if (typeof scope.intMinutos !== "undefined" && scope.intMinutos !== null) {
+					let minutos = parseInt(scope.intMinutos);
+					scope.puntero.setMinutes(minutos);
+				}
+
+
+				ngModel.$setViewValue(new Date(scope.puntero.getTime()));
+
+				if (scope.hour) {
+					// cuando está activada la selección de hora, es necesario confirmar con el botón
+					return;
+				}
+
 				//aplicar();
 				esconder();
+			};
+
+			scope.asignarHora = () => {
+				if (scope.puntero && scope.puntero.getTime()) {
+					ngModel.$setViewValue(new Date(scope.puntero.getTime()));
+					esconder();
+				} else {
+					return;
+				}
 			}
 
 			scope.borrar = () => {
 				ngModel.$setViewValue(null);
 				scope.puntero = null;
 				esconder();
-			}			
+			};
 
-			
 			scope.$watch("min", (nueva: Date) => {
 				min = (nueva === undefined || nueva === null) ? null : nueva;
 			});
 
 			scope.$watch("max", (nueva: Date) => {
 				max = (nueva === undefined || nueva === null) ? null : nueva;
+			});
+
+			scope.$watch("hora", (nueva: boolean) => {
+				hora = nueva;
 			});
 
 			scope.$watch("onlyAllowed", (nueva:Array<Date>) => {
@@ -602,6 +701,8 @@ module DatePicker {
 
 				if (tipo === '[object Date]' && nueva !== null) {
 					scope.puntero = nueva;
+					scope.intHora = nueva.getHours();
+					scope.intMinutos = nueva.getMinutes();
 				} else {
 					scope.puntero = initDate();
 				}
