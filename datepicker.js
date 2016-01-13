@@ -35,7 +35,7 @@ var DatePicker;
                 scope.intMinutos = null;
                 var initDate = function (fecha) {
                     var tipo = Object.prototype.toString.call(fecha);
-                    fecha = (tipo !== '[object Date]') ? new Date() : fecha;
+                    fecha = (tipo !== '[object Date]' || fecha === null) ? new Date() : fecha;
                     if (!hora) {
                         fecha.setMilliseconds(0);
                         fecha.setHours(0);

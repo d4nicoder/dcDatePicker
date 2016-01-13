@@ -24,6 +24,8 @@ module DatePicker {
 		asignar: (dia:Date) => void;		// Método para asignar la fecha que hemos seleccionado
 		intHora: number;                    // Hora actual seleccionada
 		intMinutos: number;                 // Minutos actuales seleccionados
+		setHora: ($event: ng.IAngularEvent) => void;
+		setMinutes: ($event: ng.IAngularEvent) => void;
 		asignarHora:() => void               // Método que sustituye a asignar() cuando se activa la hora
 		isOpen: boolean;					// Variable que determina si el calendario está abierto o no
 		borrar: () => void; 				// Método para borrar la fecha del calendario
@@ -92,7 +94,7 @@ module DatePicker {
 			 */
 			var initDate = (fecha?:Date) : Date => {
 				var tipo = Object.prototype.toString.call(fecha);
-				fecha = (tipo !== '[object Date]') ? new Date() : fecha;
+				fecha = (tipo !== '[object Date]' || fecha === null) ? new Date() : fecha;
 
 				// si no queremos establecera la hora, reseteamos el día a la hora 0, si no, lo dejamos como está
 				if (!hora) {
