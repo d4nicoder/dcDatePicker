@@ -19,7 +19,7 @@ var DatePicker;
                 onlyAllowed: "=?",
                 onlyDays: "=?",
                 notDays: "=?",
-                isOpen: "=?"
+                isOpen: "=?",
             };
             this.require = "ngModel";
             this.link = function (scope, elem, attrs, ngModel) {
@@ -35,7 +35,7 @@ var DatePicker;
                 scope.intMinutos = null;
                 var initDate = function (fecha) {
                     var tipo = Object.prototype.toString.call(fecha);
-                    fecha = (tipo !== '[object Date]' || fecha === null) ? new Date() : fecha;
+                    fecha = (tipo !== "[object Date]" || fecha === null) ? new Date() : fecha;
                     if (!hora) {
                         fecha.setMilliseconds(0);
                         fecha.setHours(0);
@@ -83,8 +83,8 @@ var DatePicker;
                 dia.setMilliseconds(0);
                 scope.diasCabecera.push(dia);
                 for (var i = 0; i < 6; i++) {
-                    var dia = new Date(dia.getTime() + 86400000);
-                    scope.diasCabecera.push(dia);
+                    var diaNuevo = new Date(dia.getTime() + 86400000);
+                    scope.diasCabecera.push(diaNuevo);
                 }
                 var getMeses = function () {
                     scope.meses = [];
@@ -176,7 +176,7 @@ var DatePicker;
                     scope.puntero.setHours(scope.intHora);
                 };
                 scope.setMinutes = function ($ev) {
-                    scope.intMinutos = parseInt($ev.target.value);
+                    scope.intMinutos = parseInt($ev.target.value, 10);
                     scope.puntero.setMinutes(scope.intMinutos);
                 };
                 scope.claseDia = function (dia) {
@@ -353,7 +353,7 @@ var DatePicker;
                 });
                 scope.$watch("ngModel", function (nueva) {
                     var tipo = Object.prototype.toString.call(nueva);
-                    if (tipo === '[object Date]' && nueva !== null) {
+                    if (tipo === "[object Date]" && nueva !== null) {
                         scope.puntero = nueva;
                         scope.intHora = nueva.getHours();
                         scope.intMinutos = nueva.getMinutes();
@@ -373,6 +373,6 @@ var DatePicker;
             return directiva;
         };
         return Directive;
-    })();
+    }());
     angular.module("dcDatePicker").directive("dcDatePicker", Directive.factory());
 })(DatePicker || (DatePicker = {}));
