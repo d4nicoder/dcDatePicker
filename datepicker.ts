@@ -273,8 +273,8 @@ module DatePicker {
 				for (let i: number = 0; i < 12; i++) {
 					let nuevoMes: Date = new Date();
 					nuevoMes.setFullYear(ano);
-					nuevoMes.setMonth(i);
 					nuevoMes.setDate(1);
+					nuevoMes.setMonth(i);
 					nuevoMes = initDate(nuevoMes);
 
 					if (i % 3 === 0 && i !== 0) {
@@ -358,8 +358,8 @@ module DatePicker {
 
 				// definimos el día 1 del més
 				let dia: Date = new Date();
-				dia.setMonth(mes);
 				dia.setDate(1);
+				dia.setMonth(mes);
 				dia.setFullYear(scope.puntero.getFullYear());
 				dia = initDate(dia);
 				scope.dias.push(dia);
@@ -396,6 +396,7 @@ module DatePicker {
 				switch (tipo) {
 					case -1:
 						// mes anterior:
+						
 						mes = (scope.puntero.getMonth() === 0) ? 11 : scope.puntero.getMonth() - 1;
 						dia = 1;
 						ano = (mes === 11) ? scope.puntero.getFullYear() - 1 : scope.puntero.getFullYear();

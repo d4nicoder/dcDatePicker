@@ -45,5 +45,5 @@ var miAppController = (function () {
     }
     miAppController.$inject = ["$scope", "$timeout"];
     return miAppController;
-})();
+}());
 angular.module("miApp", ["dcDatePicker"]).controller("testController", miAppController);

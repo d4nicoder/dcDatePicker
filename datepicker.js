@@ -19,7 +19,7 @@ var DatePicker;
                 onlyAllowed: "=?",
                 onlyDays: "=?",
                 notDays: "=?",
-                isOpen: "=?",
+                isOpen: "=?"
             };
             this.require = "ngModel";
             this.link = function (scope, elem, attrs, ngModel) {
@@ -93,8 +93,8 @@ var DatePicker;
                     for (var i = 0; i < 12; i++) {
                         var nuevoMes = new Date();
                         nuevoMes.setFullYear(ano);
-                        nuevoMes.setMonth(i);
                         nuevoMes.setDate(1);
+                        nuevoMes.setMonth(i);
                         nuevoMes = initDate(nuevoMes);
                         if (i % 3 === 0 && i !== 0) {
                             m++;
@@ -129,8 +129,8 @@ var DatePicker;
                     scope.dias = [];
                     var mes = scope.puntero.getMonth();
                     var dia = new Date();
-                    dia.setMonth(mes);
                     dia.setDate(1);
+                    dia.setMonth(mes);
                     dia.setFullYear(scope.puntero.getFullYear());
                     dia = initDate(dia);
                     scope.dias.push(dia);
