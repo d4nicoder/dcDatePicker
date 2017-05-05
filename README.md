@@ -1,15 +1,15 @@
-##dcDatePicker
+## dcDatePicker
 
 dcDatePicker is a simple angular directive to show a calendar whe click in an input element.
 You can choose two different views; 'month' and 'day'
 
-###Install instructions
-####Bower
+### Install instructions
+#### Bower
 ```
 bower install dcDatepicker
 ```
 
-###Usage
+### Usage
 Tu use the directive, inject the module in your angular app
 
 ```html
@@ -21,7 +21,7 @@ angular.module("myApp",["dcDatePicker"]);
 ```
 Then use in an input element
 
-####Day view
+#### Day view
 ```html
 <input type="text" ng-model="myVar" dc-date-picker date-type="day">
 ```
@@ -29,7 +29,7 @@ Then use in an input element
 ![Day preview](https://raw.github.com/danitetus/dcDatepicker/master/screenshots/dia.png "Day view")
 
 
-####Month view
+#### Month view
 ```html
 <input type="text" ng-model="myVar" dc-date-picker date-type="month">
 ```
